@@ -21,7 +21,7 @@
 <section class="stats" aria-label="Your statistics">
   <div class="stat"><label>Total rolls</label><strong id="rollsStat">0</strong></div>
   <div class="stat"><label>Entropy points</label><strong id="epStat">0 EP</strong></div>
-  <div class="stat"><label>Badges found</label><strong id="badgeStat">0 / 10</strong></div>
+  <div class="stat"><label>Badges found</label><strong id="badgeStat">0 / 11</strong></div>
   <div class="stat"><label>Best pattern</label><strong id="bestStat">—</strong></div>
 </section>
 <main class="layout">
@@ -31,7 +31,7 @@
     <button class="roll-btn" id="rollBtn">⚡ ROLL THE DICE</button><p class="hint">Numbers are generated locally. Your progress saves in this browser.</p>
   </section>
   <div class="side-stack">
-    <section class="panel"><div class="panel-head"><h2>✧ Badge collection</h2><span class="pill" id="badgePill">0 / 10</span></div><div class="badge-grid" id="badgeGrid"></div></section>
+    <section class="panel"><div class="panel-head"><h2>✧ Badge collection</h2><span class="pill" id="badgePill">0 / 11</span></div><div class="badge-grid" id="badgeGrid"></div></section>
     <section class="panel"><div class="panel-head"><h2>↗ Recent rolls</h2><span class="pill">LAST 8</span></div><div class="history" id="historyList"><div class="empty">Your roll history will appear here.</div></div></section>
   </div>
 </main>
@@ -64,7 +64,7 @@ function traits(n){const s=String(n),out=[];if(n%2===0)out.push('Even');else out
 function isPrime(n){if(n<2)return false;if(n%2===0)return n===2;for(let i=3;i*i<=n;i+=2)if(n%i===0)return false;return true}
 function score(n,earned){let points=1+(earned.length*12);if(String(n)===String(n).split('').reverse().join(''))points+=20;if(/^([0-9])\1+$/.test(String(n)))points+=100;if(n===1000000)points+=1000000;return points}
 function patternScore(n,earned){return (earned.length*100)+(String(n)===String(n).split('').reverse().join('')?40:0)+(/^([0-9])\1+$/.test(String(n))?200:0)+(n===1000000?1000000:0)}
-function rarityLabel(n,earned){if(n===1000000)return'JACKPOT • 1 IN 1,000,001';if(n===12345)return'COUNT-UP SEQUENCE • 1 IN 1,000,001';if(earned.includes('allSame'))return'ULTRA RARE • REPEATED DIGITS';if(earned.includes('ascending'))return'RARE • COUNT-UP PATTERN';if(earned.includes('palindrome')&&earned.includes('triple'))return'RARE • DOUBLE PATTERN';if(earned.includes('palindrome'))return'RARE • MIRROR NUMBER';if(earned.length>=3)return'UNCOMMON • PATTERN STACK';if(earned.length>=2)return'PATTERN FOUND';if(earned.includes('prime'))return'COMMON • PRIME NUMBER';return'COMMON • KEEP HUNTING'}
+function rarityLabel(n,earned){const s=String(n);if(n===1000000)return'JACKPOT • 1 IN 1,000,001';if(n===12345)return'COUNT-UP SEQUENCE • 1 IN 1,000,001';if(/^([0-9])\\1+$/.test(s))return'ULTRA RARE • REPEATED DIGITS';if(s.length>=3&&[...s].every((d,i)=>i===0||+d===+s[i-1]+1))return'RARE • COUNT-UP PATTERN';if(s===s.split('').reverse().join('')&&/(\\d)\\1\\1/.test(s))return'RARE • DOUBLE PATTERN';if(s===s.split('').reverse().join(''))return'RARE • MIRROR NUMBER';if(earned.length>=3)return'UNCOMMON • PATTERN STACK';if(earned.length>=2)return'PATTERN FOUND';if(isPrime(n))return'COMMON • PRIME NUMBER';return n%2===0?'COMMON • EVEN NUMBER':'COMMON • ODD NUMBER'}
 function rarityOdds(n,earned){if(n===1000000||n===12345)return'Exact roll: 1 in 1,000,001 possible numbers';if(earned.includes('allSame'))return'Estimated pattern rarity: about 1 in 15,000 rolls';if(earned.includes('ascending'))return'Rare sequential digits — COUNT UP!';if(earned.includes('palindrome'))return'Estimated pattern rarity: about 1 in 900 rolls';if(earned.includes('prime'))return'Prime number — roughly 1 in 14 numbers';if(n%2===0)return'Even number — about 1 in 2 rolls';return'Odd number — about 1 in 2 rolls'}
 let cutsceneTimer;function showCutscene(n,earned,unlocked){const el=$('cutscene'),label=rarityLabel(n,unlocked.map(b=>b.id));el.classList.remove('special','jackpot');if(n===1000000)el.classList.add('jackpot');else if(n===12345||unlocked.some(b=>b.id==='allSame'||b.id==='ascending'||b.id==='palindrome'))el.classList.add('special');$('cutsceneKicker').textContent=n===1000000?'★ MAXIMUM ROLL DETECTED':n===12345?'✦ SPECIAL SEQUENCE DETECTED':'ROLL COMPLETE';$('cutsceneNumber').textContent=fmt(n);$('cutsceneRarity').textContent=label;$('cutsceneDetail').textContent=rarityOdds(n,earned)+(unlocked.length?' • Badge unlocked: '+unlocked.map(b=>b.name).join(', '):'');el.classList.add('show');clearTimeout(cutsceneTimer);cutsceneTimer=setTimeout(()=>el.classList.remove('show'),2600)}
 function renderBadges(){ $('badgeGrid').innerHTML=badgeDefs.map(b=>{let yes=state.badges.includes(b.id);return '<div class="badge-card '+(yes?'unlocked':'')+'"><div class="badge-icon">'+b.icon+'</div><div class="badge-name">'+b.name+'</div><div class="badge-desc">'+b.desc+'</div><div class="badge-status">'+(yes?'✓ UNLOCKED':'🔒 LOCKED')+'</div></div>'}).join('');$('badgePill').textContent=state.badges.length+' / '+badgeDefs.length}
